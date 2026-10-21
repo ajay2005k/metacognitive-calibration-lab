@@ -1,0 +1,563 @@
+[
+  {
+    "id": "logic-easy-1",
+    "category": "logic",
+    "difficulty": "easy",
+    "question": "All robins are birds. All birds are animals. What must be true?",
+    "options": [
+      "All robins are animals",
+      "All animals are robins",
+      "No robins are birds",
+      "All birds are robins"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "logic-easy-2",
+    "category": "logic",
+    "difficulty": "easy",
+    "question": "A light is either on or off. It is not on. What follows?",
+    "options": [
+      "It is off",
+      "It is broken",
+      "It is both on and off",
+      "Nothing follows"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "logic-medium-1",
+    "category": "logic",
+    "difficulty": "medium",
+    "question": "If a card is red, it has a star. A card has no star. What must be true?",
+    "options": [
+      "The card is not red",
+      "The card is red",
+      "The card is round",
+      "The card has two stars"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "logic-medium-2",
+    "category": "logic",
+    "difficulty": "medium",
+    "question": "Some poets are teachers. All teachers are readers. What must be true?",
+    "options": [
+      "Some poets are readers",
+      "All poets are teachers",
+      "All readers are poets",
+      "No poets are readers"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "logic-hard-1",
+    "category": "logic",
+    "difficulty": "hard",
+    "question": "Exactly one of A, B, and C is true. A says B is true. B says C is false. C says A is false. Which statement is true?",
+    "options": [
+      "A only",
+      "B only",
+      "C only",
+      "No consistent assignment"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "logic-hard-2",
+    "category": "logic",
+    "difficulty": "hard",
+    "question": "If P then Q. If Q then R. R is false. Which must hold?",
+    "options": [
+      "P and Q are false",
+      "P is true and Q is false",
+      "P is false and Q is true",
+      "P and Q are true"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "pattern-easy-1",
+    "category": "pattern",
+    "difficulty": "easy",
+    "question": "What comes next: 3, 6, 9, 12, \u2026?",
+    "options": [
+      "15",
+      "14",
+      "16",
+      "18"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "pattern-easy-2",
+    "category": "pattern",
+    "difficulty": "easy",
+    "question": "What comes next: A, C, E, G, \u2026?",
+    "options": [
+      "H",
+      "I",
+      "J",
+      "K"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "pattern-medium-1",
+    "category": "pattern",
+    "difficulty": "medium",
+    "question": "What comes next: 2, 6, 12, 20, 30, \u2026?",
+    "options": [
+      "40",
+      "42",
+      "44",
+      "46"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "pattern-medium-2",
+    "category": "pattern",
+    "difficulty": "medium",
+    "question": "What comes next: 1, 1, 2, 3, 5, 8, \u2026?",
+    "options": [
+      "10",
+      "11",
+      "13",
+      "16"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "pattern-hard-1",
+    "category": "pattern",
+    "difficulty": "hard",
+    "question": "What comes next: 2, 3, 5, 9, 17, \u2026?",
+    "options": [
+      "25",
+      "31",
+      "33",
+      "35"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "pattern-hard-2",
+    "category": "pattern",
+    "difficulty": "hard",
+    "question": "What comes next: 1, 4, 10, 20, 35, \u2026?",
+    "options": [
+      "50",
+      "54",
+      "56",
+      "60"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "memory-easy-1",
+    "category": "memory",
+    "difficulty": "easy",
+    "question": "Which word was in the study list?",
+    "options": [
+      "river",
+      "stone",
+      "train",
+      "glass"
+    ],
+    "answer": 0,
+    "study": [
+      "apple",
+      "river",
+      "chair",
+      "cloud"
+    ],
+    "study_seconds": 6
+  },
+  {
+    "id": "memory-easy-2",
+    "category": "memory",
+    "difficulty": "easy",
+    "question": "Which word was in the study list?",
+    "options": [
+      "window",
+      "piano",
+      "forest",
+      "paper"
+    ],
+    "answer": 1,
+    "study": [
+      "lemon",
+      "piano",
+      "garden",
+      "silver"
+    ],
+    "study_seconds": 6
+  },
+  {
+    "id": "memory-medium-1",
+    "category": "memory",
+    "difficulty": "medium",
+    "question": "Which word was in the study list?",
+    "options": [
+      "canyon",
+      "marble",
+      "velvet",
+      "feather"
+    ],
+    "answer": 2,
+    "study": [
+      "candle",
+      "bridge",
+      "velvet",
+      "ocean",
+      "basket",
+      "planet"
+    ],
+    "study_seconds": 8
+  },
+  {
+    "id": "memory-medium-2",
+    "category": "memory",
+    "difficulty": "medium",
+    "question": "Which word was in the study list?",
+    "options": [
+      "summer",
+      "ladder",
+      "ribbon",
+      "cabin"
+    ],
+    "answer": 1,
+    "study": [
+      "mirror",
+      "copper",
+      "island",
+      "ladder",
+      "winter",
+      "button"
+    ],
+    "study_seconds": 8
+  },
+  {
+    "id": "memory-hard-1",
+    "category": "memory",
+    "difficulty": "hard",
+    "question": "Which word was in the study list?",
+    "options": [
+      "lilac",
+      "beacon",
+      "raven",
+      "cotton"
+    ],
+    "answer": 2,
+    "study": [
+      "anchor",
+      "willow",
+      "compass",
+      "raven",
+      "linen",
+      "pebble",
+      "orchid",
+      "lantern"
+    ],
+    "study_seconds": 10
+  },
+  {
+    "id": "memory-hard-2",
+    "category": "memory",
+    "difficulty": "hard",
+    "question": "Which word was in the study list?",
+    "options": [
+      "swallow",
+      "sapphire",
+      "valley",
+      "spindle"
+    ],
+    "answer": 3,
+    "study": [
+      "harbor",
+      "thistle",
+      "cobalt",
+      "sparrow",
+      "satchel",
+      "meadow",
+      "ivory",
+      "spindle"
+    ],
+    "study_seconds": 10
+  },
+  {
+    "id": "probability-easy-1",
+    "category": "probability",
+    "difficulty": "easy",
+    "question": "A fair coin is flipped once. What is the probability of heads?",
+    "options": [
+      "25%",
+      "50%",
+      "75%",
+      "100%"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "probability-easy-2",
+    "category": "probability",
+    "difficulty": "easy",
+    "question": "A fair six-sided die is rolled. What is the probability of an even number?",
+    "options": [
+      "1/6",
+      "1/3",
+      "1/2",
+      "2/3"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "probability-medium-1",
+    "category": "probability",
+    "difficulty": "medium",
+    "question": "Two fair coins are flipped independently. What is the probability of exactly one head?",
+    "options": [
+      "1/4",
+      "1/2",
+      "3/4",
+      "1"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "probability-medium-2",
+    "category": "probability",
+    "difficulty": "medium",
+    "question": "A bag has 3 red and 2 blue balls. Two are drawn without replacement. What is the probability both are red?",
+    "options": [
+      "3/10",
+      "9/25",
+      "1/2",
+      "3/5"
+    ],
+    "answer": 0
+  },
+  {
+    "id": "probability-hard-1",
+    "category": "probability",
+    "difficulty": "hard",
+    "question": "A fair die is rolled twice. What is the probability the sum is 9?",
+    "options": [
+      "1/6",
+      "1/9",
+      "1/12",
+      "2/9"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "probability-hard-2",
+    "category": "probability",
+    "difficulty": "hard",
+    "question": "A test has 90% sensitivity and a 10% false-positive rate. Prevalence is 10%. What fraction of positive results are true positives?",
+    "options": [
+      "10%",
+      "50%",
+      "81%",
+      "90%"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "numerical-easy-1",
+    "category": "numerical",
+    "difficulty": "easy",
+    "question": "What is 15% of 200?",
+    "options": [
+      "15",
+      "20",
+      "30",
+      "40"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "numerical-easy-2",
+    "category": "numerical",
+    "difficulty": "easy",
+    "question": "What is 7 \u00d7 8?",
+    "options": [
+      "48",
+      "54",
+      "56",
+      "64"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "numerical-medium-1",
+    "category": "numerical",
+    "difficulty": "medium",
+    "question": "An item costs 80 units. After a 25% discount, what does it cost?",
+    "options": [
+      "55",
+      "60",
+      "65",
+      "70"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "numerical-medium-2",
+    "category": "numerical",
+    "difficulty": "medium",
+    "question": "Solve 3x + 7 = 31. What is x?",
+    "options": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "numerical-hard-1",
+    "category": "numerical",
+    "difficulty": "hard",
+    "question": "A price increases by 20% then decreases by 20%. What percentage of the original price remains?",
+    "options": [
+      "80%",
+      "96%",
+      "100%",
+      "104%"
+    ],
+    "answer": 1
+  },
+  {
+    "id": "numerical-hard-2",
+    "category": "numerical",
+    "difficulty": "hard",
+    "question": "A machine fills 3/8 of a tank in 15 minutes at a constant rate. How long does a full tank take?",
+    "options": [
+      "30 minutes",
+      "35 minutes",
+      "40 minutes",
+      "45 minutes"
+    ],
+    "answer": 2
+  },
+  {
+    "id": "perceptual-easy-1",
+    "category": "perceptual",
+    "difficulty": "easy",
+    "question": "Which circle was largest?",
+    "options": [
+      "Top left",
+      "Top right",
+      "Bottom left",
+      "Bottom right"
+    ],
+    "answer": 1,
+    "stimulus": {
+      "type": "circles",
+      "radii_px": [
+        24,
+        36,
+        27,
+        29
+      ]
+    }
+  },
+  {
+    "id": "perceptual-easy-2",
+    "category": "perceptual",
+    "difficulty": "easy",
+    "question": "How many dots were shown?",
+    "options": [
+      "8",
+      "10",
+      "12",
+      "15"
+    ],
+    "answer": 2,
+    "stimulus": {
+      "type": "dots",
+      "count": 12
+    }
+  },
+  {
+    "id": "perceptual-medium-1",
+    "category": "perceptual",
+    "difficulty": "medium",
+    "question": "Which circle was largest?",
+    "options": [
+      "Top left",
+      "Top right",
+      "Bottom left",
+      "Bottom right"
+    ],
+    "answer": 2,
+    "stimulus": {
+      "type": "circles",
+      "radii_px": [
+        31,
+        29,
+        34,
+        30
+      ]
+    }
+  },
+  {
+    "id": "perceptual-medium-2",
+    "category": "perceptual",
+    "difficulty": "medium",
+    "question": "How many dots were shown?",
+    "options": [
+      "20",
+      "22",
+      "24",
+      "27"
+    ],
+    "answer": 2,
+    "stimulus": {
+      "type": "dots",
+      "count": 24
+    }
+  },
+  {
+    "id": "perceptual-hard-1",
+    "category": "perceptual",
+    "difficulty": "hard",
+    "question": "Which circle was largest?",
+    "options": [
+      "Top left",
+      "Top right",
+      "Bottom left",
+      "Bottom right"
+    ],
+    "answer": 1,
+    "stimulus": {
+      "type": "circles",
+      "radii_px": [
+        32,
+        33,
+        31,
+        30
+      ]
+    }
+  },
+  {
+    "id": "perceptual-hard-2",
+    "category": "perceptual",
+    "difficulty": "hard",
+    "question": "How many dots were shown?",
+    "options": [
+      "34",
+      "36",
+      "38",
+      "41"
+    ],
+    "answer": 2,
+    "stimulus": {
+      "type": "dots",
+      "count": 38
+    }
+  }
+]
