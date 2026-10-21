@@ -70,3 +70,21 @@ def test_success_is_reported_only_after_ssm_success(monkeypatch, tmp_path, termi
     else:
         assert release.update("us-east-1", "mclab-prod") == "https://test.example"
         assert "https://test.example" in summary.read_text()
+
+
+def test_oidc_subject_matches_verified_github_immutable_identity():
+    from deploy.aws.setup_github import subject_from_repository
+
+    metadata = {
+        "owner": {"login": "ajay2005k", "id": 91924588},
+        "name": "metacognitive-calibration-lab",
+        "id": 1428649326,
+    }
+    assert (
+        subject_from_repository(metadata)
+        == "repo:ajay2005k@91924588/metacognitive-calibration-lab@1428649326:ref:refs/heads/main"
+    )
+    assert (
+        subject_from_repository(metadata, legacy=True)
+        == "repo:ajay2005k/metacognitive-calibration-lab:ref:refs/heads/main"
+    )

@@ -90,7 +90,7 @@ python3 deploy/aws/setup_github.py --region us-east-1
 
 This creates the hosting stack if it is absent; first provisioning can take 15–30 minutes. Keep CloudShell open and monitor its output. If an existing stack is still creating, wait for it to finish and rerun the setup script. An existing failed stack must be inspected/repaired rather than overwritten.
 
-The script reuses an existing GitHub OIDC provider when its audience is compatible. It creates/updates only the project's tagged release role, trusting exactly `repo:ajay2005k/metacognitive-calibration-lab:ref:refs/heads/main` and audience `sts.amazonaws.com`. It will not overwrite an unrelated role with the same name.
+The script reuses an existing GitHub OIDC provider when its audience is compatible. It creates/updates only the project's tagged release role, trusting exactly `repo:ajay2005k@91924588/metacognitive-calibration-lab@1428649326:ref:refs/heads/main` and audience `sts.amazonaws.com`. It will not overwrite an unrelated role with the same name.
 
 At the end it prints the live site URL and three **non-secret** GitHub repository variables:
 
@@ -123,3 +123,15 @@ Hosting infrastructure changes still require an owner-reviewed CloudFormation up
 The owner created the AWS connection in account `014679146311`, region `us-east-1`, stack `mclab-prod`. The workflow uses the non-secret role ARN `arn:aws:iam::014679146311:role/mclab-prod-github-deploy` as its default, because the connected GitHub integration cannot write Actions variables. Repository variables can still override the defaults. No AWS access keys are stored in the workflow. Push-to-main deployment is enabled for this repository once that workflow change is pushed.
 
 Owner-provided site: https://d1enzhyo49eo40.cloudfront.net. The shared site login remains required; its password stays in the owner's private CloudShell deployment files.
+
+### Repair the original name-only OIDC trust
+
+The verified GitHub token for this repository includes immutable owner/repository IDs. The initial setup helper incorrectly used the older name-only subject; this rejected AWS sign-in even though hosting was healthy. The corrected helper resolves public GitHub repository metadata and trusts exactly the verified immutable identity on `main`, without a wildcard. Run once in your existing CloudShell checkout:
+
+```bash
+cd ~/mclab-aws
+git pull --ff-only
+python3 deploy/aws/setup_github.py --region us-east-1
+```
+
+For an already complete hosting stack this updates only the connection role; it does not replace the instance, reset the site password, or delete MongoDB data. Then rerun the GitHub workflow. `--legacy-subject` is available only for older repositories whose actual diagnostic token still uses name-only subjects. Custom subjects must be reviewed against actual GitHub identity claims.

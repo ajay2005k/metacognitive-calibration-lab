@@ -4,6 +4,7 @@ import argparse
 import json
 import re
 import tempfile
+import urllib.request
 from pathlib import Path
 
 try:
@@ -12,11 +13,38 @@ except ImportError:
     from deploy import aws, deploy, private_json
 
 
-def connect(region, stack_name, repository):
+def subject_from_repository(metadata, legacy=False):
+    owner = metadata["owner"]
+    if legacy:
+        repo = f"{owner['login']}/{metadata['name']}"
+    else:
+        repo = f"{owner['login']}@{owner['id']}/{metadata['name']}@{metadata['id']}"
+    return f"repo:{repo}:ref:refs/heads/main"
+
+
+def github_subject(repository, legacy=False):
+    request = urllib.request.Request(
+        f"https://api.github.com/repos/{repository}",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "mclab-aws-setup",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        metadata = json.load(response)
+    if metadata["full_name"].lower() != repository.lower():
+        raise RuntimeError(
+            "GitHub repository identity did not match the requested repository"
+        )
+    return subject_from_repository(metadata, legacy)
+
+
+def connect(region, stack_name, repository, legacy_subject=False):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("Expected owner/repository")
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]{0,39}", stack_name):
         raise ValueError("Invalid stack name")
+    subject = github_subject(repository, legacy_subject)
     identity = aws(region, "sts", "get-caller-identity")
     account = identity["Account"]
     partition = identity["Arn"].split(":")[1]
@@ -76,7 +104,7 @@ def connect(region, stack_name, repository):
                 "Condition": {
                     "StringEquals": {
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-                        "token.actions.githubusercontent.com:sub": f"repo:{repository}:ref:refs/heads/main",
+                        "token.actions.githubusercontent.com:sub": subject,
                     }
                 },
             }
@@ -189,5 +217,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--repository", default="ajay2005k/metacognitive-calibration-lab"
     )
+    parser.add_argument(
+        "--legacy-subject",
+        action="store_true",
+        help="Use only for an older repository whose diagnostic token has a name-only subject",
+    )
     args = parser.parse_args()
-    connect(args.region, args.stack_name, args.repository)
+    connect(args.region, args.stack_name, args.repository, args.legacy_subject)

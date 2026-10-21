@@ -36,3 +36,5 @@ GitHub account identity was verified as `ajay2005k`. The owner created `ajay2005
 ## AWS connection activation
 
 The owner supplied the AWS role ARN and live CloudFront endpoint after running setup. GitHub's Actions-variable write API returned HTTP 403 for this integration, so the non-secret role ARN is configured directly as the workflow default. Region and stack defaults match the owner-provided values. Authentication remains GitHub OIDC with short-lived AWS sessions; no access keys or site password were supplied or committed.
+
+The first connected deployment's tests passed, but AWS rejected role assumption. GitHub's non-secret token diagnostics confirmed subject `repo:ajay2005k@91924588/metacognitive-calibration-lab@1428649326:ref:refs/heads/main`, while the original helper trusted the old name-only format. The helper is corrected and tested against the observed identity. Applying that IAM trust repair requires the owner to rerun setup in CloudShell; push deployment is not yet verified. The public HTTPS site independently returns the expected HTTP 401 shared-login challenge.
