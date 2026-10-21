@@ -82,7 +82,7 @@
                   "Effect": "Allow",
                   "Action": "s3:GetObject",
                   "Resource": {
-                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucket}/${ArtifactKey}"
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucket}/releases/*"
                   }
                 }
               ]
@@ -171,7 +171,7 @@
         ],
         "UserData": {
           "Fn::Base64": {
-            "Fn::Sub": "#!/bin/bash\nset -euo pipefail\nexec > /var/log/mclab-bootstrap.log 2>&1\ndnf install -y docker unzip\nsystemctl enable --now docker\nmkdir -p /usr/local/lib/docker/cli-plugins /opt/mclab /var/lib/mclab/mongo\ncurl -fsSL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose\ncurl -fsSL https://github.com/docker/buildx/releases/download/v0.28.0/buildx-v0.28.0.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx\nchmod +x /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-buildx\nif ! command -v aws >/dev/null; then\n    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscli.zip\n    unzip -q /tmp/awscli.zip -d /tmp\n    /tmp/aws/install\nfi\naws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/mclab.zip --region ${AWS::Region}\nunzip -q /tmp/mclab.zip -d /opt/mclab\ncd /opt/mclab\numask 077\ncat > .env.production <<'ENV'\nORIGIN_SECRET=${OriginSecret}\nMONGO_DATA_DIR=/var/lib/mclab/mongo\nWEB_BIND=0.0.0.0\nWEB_PORT=80\nENV\ndocker compose --env-file .env.production -f docker-compose.production.yml up -d --build\n"
+            "Fn::Sub": "#!/bin/bash\nset -euo pipefail\nexec > /var/log/mclab-bootstrap.log 2>&1\ndnf install -y docker unzip\nsystemctl enable --now docker\nmkdir -p /usr/local/lib/docker/cli-plugins /opt/mclab /var/lib/mclab/mongo\ncurl -fsSL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose\ncurl -fsSL https://github.com/docker/buildx/releases/download/v0.28.0/buildx-v0.28.0.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx\nchmod +x /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-buildx\nif ! command -v aws >/dev/null; then\n    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscli.zip\n    unzip -q /tmp/awscli.zip -d /tmp\n    /tmp/aws/install\nfi\naws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/mclab.zip --region ${AWS::Region}\nunzip -q /tmp/mclab.zip -d /opt/mclab\ncd /opt/mclab\numask 077\ncat > .env.production <<'ENV'\nORIGIN_SECRET=${OriginSecret}\nMONGO_DATA_DIR=/var/lib/mclab/mongo\nWEB_BIND=0.0.0.0\nWEB_PORT=80\nENV\ndocker compose -p mclab --env-file .env.production -f docker-compose.production.yml up -d --build\n"
           }
         }
       }

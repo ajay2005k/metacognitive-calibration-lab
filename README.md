@@ -214,3 +214,5 @@ The generated source ZIP omits `.git`, installed dependencies, build output, cac
 ## AWS hosting
 
 Production container definitions and an AWS CloudFormation deployment are in [deploy/aws/README.md](deploy/aws/README.md). The deployment uses CloudFront HTTPS with a shared access gate, one EC2 Docker host, and persistent encrypted EBS storage for MongoDB. It requires a separate AWS account connection; GitHub access does not supply AWS credentials. A live link is confirmed only after AWS provisioning and an authenticated HTTPS health check. This does not automatically seed data or migrate any local database.
+
+To enable deployment on every push to `main`, follow the **Automatic deployment on GitHub pushes** section of [the AWS guide](deploy/aws/README.md). It uses GitHub Actions OIDC instead of stored AWS keys. One AWS CloudShell setup command creates the host and restricted release role; three non-secret repository variables enable the pipeline. Tests must pass before the existing server is updated, and MongoDB data is retained.

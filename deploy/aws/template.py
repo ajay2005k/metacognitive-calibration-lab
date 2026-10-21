@@ -37,7 +37,7 @@ MONGO_DATA_DIR=/var/lib/mclab/mongo
 WEB_BIND=0.0.0.0
 WEB_PORT=80
 ENV
-docker compose --env-file .env.production -f docker-compose.production.yml up -d --build
+docker compose -p mclab --env-file .env.production -f docker-compose.production.yml up -d --build
 """
     resources = {
         "Role": {
@@ -68,7 +68,7 @@ docker compose --env-file .env.production -f docker-compose.production.yml up -d
                                     "Effect": "Allow",
                                     "Action": "s3:GetObject",
                                     "Resource": sub(
-                                        "arn:${AWS::Partition}:s3:::${ArtifactBucket}/${ArtifactKey}"
+                                        "arn:${AWS::Partition}:s3:::${ArtifactBucket}/releases/*"
                                     ),
                                 }
                             ],

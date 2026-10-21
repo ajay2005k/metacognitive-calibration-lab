@@ -25,3 +25,10 @@ GitHub account identity was verified as `ajay2005k`. The owner created `ajay2005
 - Production-container integration passed: requests without the origin secret receive 403; valid requests reach health and SPA routes; a two-trial session produces the expected report through Caddy → Gunicorn → MongoDB; that report survives a MongoDB restart. Verification data was isolated in a disposable Compose project.
 - Chromium smoke checks pass again with the updated frontend dependencies, including all trial phases, keyboard controls, charts, and tablet layout. Production builds pass with Vite 8.
 - **Not deployed on AWS yet.** The current environment has no configured AWS outbound identity, secret binding, or cloud identity manifest. No AWS stack was created and no live AWS URL has been verified. See `deploy/aws/README.md` for account requirements, deployment, credentials, costs, and teardown.
+
+## GitHub continuous deployment preparation
+
+- Added a push-to-main GitHub Actions workflow: test/build first, then an OIDC-authenticated release job if repository connection variables are configured.
+- Added a one-time CloudShell setup script that creates the hosting stack when needed and a repository/main-scoped IAM release role. No long-lived AWS keys are required in GitHub or chat.
+- Added S3/SSM releases to the existing instance with a fixed Compose project, persistent data directory, deployment lock, and a success marker written only after origin health passes.
+- Release unit tests use mocked AWS calls; they check command-input validation, shell syntax, and that failed SSM execution never produces a successful release summary. Actual IAM trust, GitHub-to-AWS token exchange, and remote releases cannot be verified until the owner performs the one-time AWS setup.

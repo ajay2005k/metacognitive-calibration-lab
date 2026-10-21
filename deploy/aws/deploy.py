@@ -240,7 +240,7 @@ def deploy(region, name, subnet_id=None):
         f"Creating {name} in {region}. CloudFront can take 15–30 minutes. Credentials saved privately to {state / 'credentials.json'}.",
         flush=True,
     )
-    for _ in range(120):
+    for attempt in range(120):
         stack = aws(
             region,
             "cloudformation",
@@ -255,6 +255,8 @@ def deploy(region, name, subnet_id=None):
             raise RuntimeError(
                 f"Stack status: {status}. Inspect CloudFormation events; no live URL is confirmed."
             )
+        if attempt % 3 == 0:
+            print(f"Waiting for hosting stack: {status}", flush=True)
         time.sleep(20)
     else:
         raise RuntimeError(

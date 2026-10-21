@@ -71,3 +71,49 @@ python deploy/aws/template.py
 ```
 
 CloudFormation validation and actual AWS deployment still require a connected account. Offline `cfn-lint` and local container tests can validate structure/runtime without provisioning resources.
+
+## Automatic deployment on GitHub pushes (recommended connection)
+
+You do not need to give AWS access keys, passwords, or your root login to ChatGPT or GitHub. Use GitHub Actions OIDC: GitHub requests a short-lived AWS session for this repository's `main` branch. The repository includes `.github/workflows/deploy.yml`.
+
+### One-time AWS setup
+
+Sign in to your own AWS account and open **AWS CloudShell** in the console. The initial setup creates billable hosting resources described above and a restricted GitHub release role. Use an account identity permitted to create those resources and the OIDC provider/role; this is a one-time owner action, not a permission granted to the CI role.
+
+Paste these commands in CloudShell (use a fresh folder, or pull the latest source if it already exists):
+
+```bash
+git clone https://github.com/ajay2005k/metacognitive-calibration-lab.git mclab-aws
+cd mclab-aws
+python3 deploy/aws/setup_github.py --region us-east-1
+```
+
+This creates the hosting stack if it is absent; first provisioning can take 15–30 minutes. Keep CloudShell open and monitor its output. If an existing stack is still creating, wait for it to finish and rerun the setup script. An existing failed stack must be inspected/repaired rather than overwritten.
+
+The script reuses an existing GitHub OIDC provider when its audience is compatible. It creates/updates only the project's tagged release role, trusting exactly `repo:ajay2005k/metacognitive-calibration-lab:ref:refs/heads/main` and audience `sts.amazonaws.com`. It will not overwrite an unrelated role with the same name.
+
+At the end it prints the live site URL and three **non-secret** GitHub repository variables:
+
+- `AWS_ROLE_ARN`: the generated role ARN. This is an identifier and is safe to share for connection setup.
+- `AWS_REGION`: your selected region, default `us-east-1`.
+- `AWS_STACK_NAME`: default `mclab-prod`.
+
+Add these in the GitHub repository: **Settings → Secrets and variables → Actions → Variables → New repository variable**. There are no `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` repository secrets to create. The site login password stays in the private `.aws-deployment` directory in your CloudShell checkout; do not send that file to ChatGPT or commit it.
+
+If your hosting stack was created from an older template that only let the EC2 role read one original source object, its `ReadSourceArtifact` policy must be upgraded to read this same bucket's `releases/*` prefix before enabling updates. The current template already does this. Never replace the database host just to change an IAM policy.
+
+### What happens on each push
+
+1. Push code to `main` (or manually run the workflow from GitHub's Actions tab).
+2. GitHub runs backend tests, frontend tests, and the frontend production build. Failed checks prevent deployment.
+3. If `AWS_ROLE_ARN` is configured, GitHub assumes the restricted release role using OIDC. Until configured, the deployment job is skipped and tests can still run.
+4. The exact tested Git commit is archived to the app's private S3 `releases/` prefix.
+5. SSM executes the release on this app's existing EC2 instance. There is no SSH key or open SSH port.
+6. The server locks releases against overlap, builds the images before replacing containers, and uses the fixed `mclab` Compose project and `/var/lib/mclab/mongo` data path. MongoDB is never taken down with `--volumes` by this workflow.
+7. The job waits for container health and verifies the origin API before marking success. The Actions summary links to the existing HTTPS site. Release status is recorded on the server in `/opt/mclab/current-release` only after health succeeds.
+
+The live URL remains the same. CloudFront caching is disabled, so no invalidation is needed for app updates. Updates normally take a few minutes, not literally instant. This is a single-server release and can cause a brief restart; it is not a zero-downtime rolling deployment. Keep regular database backups.
+
+The release role can upload only to this app's release prefix, describe only its hosting stack, and send commands only to its instance using `AWS-RunShellScript`. It cannot create infrastructure, change IAM policies, or access other EC2 instances. SSM's command-invocation read action requires a wildcard resource because AWS does not expose resource-level scoping for that action. People permitted to push executable code to `main` are trusted deployment administrators of the app.
+
+Hosting infrastructure changes still require an owner-reviewed CloudFormation update; the workflow deploys application code, not arbitrary changes to the stack. If the instance is replaced manually, rerun the connection setup so the role targets the new instance. A failed release is shown as failed; rollback is not automatic. To restore previous application code, revert the relevant commit and push the revert to `main`, after checking any data/schema implications.
