@@ -106,7 +106,7 @@ If your hosting stack was created from an older template that only let the EC2 r
 
 1. Push code to `main` (or manually run the workflow from GitHub's Actions tab).
 2. GitHub runs backend tests, frontend tests, and the frontend production build. Failed checks prevent deployment.
-3. If `AWS_ROLE_ARN` is configured, GitHub assumes the restricted release role using OIDC. Until configured, the deployment job is skipped and tests can still run.
+3. If `AWS_ROLE_ARN` is configured, GitHub assumes the restricted release role using OIDC. This repository now includes its configured non-secret role default. In a new copy, remove that default until you have configured your own connection.
 4. The exact tested Git commit is archived to the app's private S3 `releases/` prefix.
 5. SSM executes the release on this app's existing EC2 instance. There is no SSH key or open SSH port.
 6. The server locks releases against overlap, builds the images before replacing containers, and uses the fixed `mclab` Compose project and `/var/lib/mclab/mongo` data path. MongoDB is never taken down with `--volumes` by this workflow.
@@ -117,3 +117,9 @@ The live URL remains the same. CloudFront caching is disabled, so no invalidatio
 The release role can upload only to this app's release prefix, describe only its hosting stack, and send commands only to its instance using `AWS-RunShellScript`. It cannot create infrastructure, change IAM policies, or access other EC2 instances. SSM's command-invocation read action requires a wildcard resource because AWS does not expose resource-level scoping for that action. People permitted to push executable code to `main` are trusted deployment administrators of the app.
 
 Hosting infrastructure changes still require an owner-reviewed CloudFormation update; the workflow deploys application code, not arbitrary changes to the stack. If the instance is replaced manually, rerun the connection setup so the role targets the new instance. A failed release is shown as failed; rollback is not automatic. To restore previous application code, revert the relevant commit and push the revert to `main`, after checking any data/schema implications.
+
+### Connection for this repository
+
+The owner created the AWS connection in account `014679146311`, region `us-east-1`, stack `mclab-prod`. The workflow uses the non-secret role ARN `arn:aws:iam::014679146311:role/mclab-prod-github-deploy` as its default, because the connected GitHub integration cannot write Actions variables. Repository variables can still override the defaults. No AWS access keys are stored in the workflow. Push-to-main deployment is enabled for this repository once that workflow change is pushed.
+
+Owner-provided site: https://d1enzhyo49eo40.cloudfront.net. The shared site login remains required; its password stays in the owner's private CloudShell deployment files.

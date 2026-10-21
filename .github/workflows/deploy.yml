@@ -33,7 +33,7 @@ jobs:
         working-directory: frontend
   deploy:
     needs: test
-    if: github.ref == 'refs/heads/main' && vars.AWS_ROLE_ARN != ''
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -46,7 +46,8 @@ jobs:
           python-version: '3.12'
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          # Non-secret deployment role; GitHub obtains short-lived credentials using OIDC.
+          role-to-assume: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::014679146311:role/mclab-prod-github-deploy' }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
           role-duration-seconds: 1800
           role-session-name: mclab-github-deploy

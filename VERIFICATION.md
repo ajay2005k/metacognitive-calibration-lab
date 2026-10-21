@@ -32,3 +32,7 @@ GitHub account identity was verified as `ajay2005k`. The owner created `ajay2005
 - Added a one-time CloudShell setup script that creates the hosting stack when needed and a repository/main-scoped IAM release role. No long-lived AWS keys are required in GitHub or chat.
 - Added S3/SSM releases to the existing instance with a fixed Compose project, persistent data directory, deployment lock, and a success marker written only after origin health passes.
 - Release unit tests use mocked AWS calls; they check command-input validation, shell syntax, and that failed SSM execution never produces a successful release summary. Actual IAM trust, GitHub-to-AWS token exchange, and remote releases cannot be verified until the owner performs the one-time AWS setup.
+
+## AWS connection activation
+
+The owner supplied the AWS role ARN and live CloudFront endpoint after running setup. GitHub's Actions-variable write API returned HTTP 403 for this integration, so the non-secret role ARN is configured directly as the workflow default. Region and stack defaults match the owner-provided values. Authentication remains GitHub OIDC with short-lived AWS sessions; no access keys or site password were supplied or committed.
