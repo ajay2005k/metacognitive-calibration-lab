@@ -44,12 +44,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Check non-secret GitHub deployment identity
+        run: python deploy/aws/oidc_identity.py
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           # Non-secret deployment role; GitHub obtains short-lived credentials using OIDC.
           role-to-assume: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::014679146311:role/mclab-prod-github-deploy' }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
           role-duration-seconds: 1800
+          retry-max-attempts: 2
           role-session-name: mclab-github-deploy
       - name: Deploy tested commit without replacing the database host
         env:
