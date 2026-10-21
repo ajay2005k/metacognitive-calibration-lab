@@ -1,0 +1,346 @@
+{
+  "Conditions": {
+    "UsEastOne": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::Region"
+        },
+        "us-east-1"
+      ]
+    }
+  },
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "MCLab: CloudFront HTTPS/access gate, EC2 Docker host, persistent encrypted MongoDB disk",
+  "Parameters": {
+    "ArtifactBucket": {
+      "Type": "String"
+    },
+    "ArtifactKey": {
+      "Type": "String"
+    },
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "SubnetId": {
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "CloudFrontPrefixListId": {
+      "Type": "String"
+    },
+    "ImageId": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t3.small",
+      "AllowedValues": [
+        "t3.small",
+        "t3.medium"
+      ]
+    },
+    "OriginSecret": {
+      "Type": "String",
+      "NoEcho": true,
+      "MinLength": 32,
+      "AllowedPattern": "[A-Za-z0-9_-]+"
+    },
+    "AuthHeader": {
+      "Type": "String",
+      "NoEcho": true,
+      "AllowedPattern": "Basic [A-Za-z0-9+/=]+"
+    }
+  },
+  "Resources": {
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ReadSourceArtifact",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${ArtifactBucket}/${ArtifactKey}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Profile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "Role"
+          }
+        ]
+      }
+    },
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "CloudFront origin traffic only; no SSH, backend, or database ports",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "SourcePrefixListId": {
+              "Ref": "CloudFrontPrefixListId"
+            }
+          }
+        ]
+      }
+    },
+    "Server": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "ImageId"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": {
+          "Ref": "Profile"
+        },
+        "MetadataOptions": {
+          "HttpTokens": "required",
+          "HttpPutResponseHopLimit": 1
+        },
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "AssociatePublicIpAddress": true,
+            "SubnetId": {
+              "Ref": "SubnetId"
+            },
+            "GroupSet": [
+              {
+                "Ref": "SecurityGroup"
+              }
+            ]
+          }
+        ],
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeType": "gp3",
+              "VolumeSize": 30,
+              "Encrypted": true,
+              "DeleteOnTermination": false
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}-server"
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Sub": "#!/bin/bash\nset -euo pipefail\nexec > /var/log/mclab-bootstrap.log 2>&1\ndnf install -y docker unzip\nsystemctl enable --now docker\nmkdir -p /usr/local/lib/docker/cli-plugins /opt/mclab /var/lib/mclab/mongo\ncurl -fsSL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose\ncurl -fsSL https://github.com/docker/buildx/releases/download/v0.28.0/buildx-v0.28.0.linux-amd64 -o /usr/local/lib/docker/cli-plugins/docker-buildx\nchmod +x /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-buildx\nif ! command -v aws >/dev/null; then\n    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscli.zip\n    unzip -q /tmp/awscli.zip -d /tmp\n    /tmp/aws/install\nfi\naws s3 cp s3://${ArtifactBucket}/${ArtifactKey} /tmp/mclab.zip --region ${AWS::Region}\nunzip -q /tmp/mclab.zip -d /opt/mclab\ncd /opt/mclab\numask 077\ncat > .env.production <<'ENV'\nORIGIN_SECRET=${OriginSecret}\nMONGO_DATA_DIR=/var/lib/mclab/mongo\nWEB_BIND=0.0.0.0\nWEB_PORT=80\nENV\ndocker compose --env-file .env.production -f docker-compose.production.yml up -d --build\n"
+          }
+        }
+      }
+    },
+    "AccessGate": {
+      "Type": "AWS::CloudFront::Function",
+      "Properties": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-access"
+        },
+        "AutoPublish": true,
+        "FunctionConfig": {
+          "Comment": "Shared teaching-lab access gate; no participant identities",
+          "Runtime": "cloudfront-js-2.0"
+        },
+        "FunctionCode": {
+          "Fn::Sub": "function handler(event) {\n  var request = event.request;\n  var authorization = request.headers.authorization;\n  if (!authorization || authorization.value !== '${AuthHeader}') {\n    return {statusCode: 401, statusDescription: 'Unauthorized', headers: {\n      'www-authenticate': {value: 'Basic realm=\"MCLab\"'},\n      'cache-control': {value: 'no-store'}\n    }};\n  }\n  delete request.headers.authorization;\n  return request;\n}"
+        }
+      }
+    },
+    "Distribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Enabled": true,
+          "Comment": {
+            "Fn::Sub": "${AWS::StackName} teaching laboratory"
+          },
+          "PriceClass": "PriceClass_100",
+          "HttpVersion": "http2",
+          "Origins": [
+            {
+              "Id": "mclab-server",
+              "DomainName": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "ec2-",
+                    {
+                      "Fn::Join": [
+                        "-",
+                        {
+                          "Fn::Split": [
+                            ".",
+                            {
+                              "Ref": "PublicIp"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::If": [
+                        "UsEastOne",
+                        ".compute-1.amazonaws.com",
+                        {
+                          "Fn::Sub": ".${AWS::Region}.compute.amazonaws.com"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              "CustomOriginConfig": {
+                "HTTPPort": 80,
+                "OriginProtocolPolicy": "http-only"
+              },
+              "OriginCustomHeaders": [
+                {
+                  "HeaderName": "X-Origin-Verify",
+                  "HeaderValue": {
+                    "Ref": "OriginSecret"
+                  }
+                }
+              ]
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "mclab-server",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PUT",
+              "PATCH",
+              "POST",
+              "DELETE"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+            "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+            "FunctionAssociations": [
+              {
+                "EventType": "viewer-request",
+                "FunctionARN": {
+                  "Fn::GetAtt": [
+                    "AccessGate",
+                    "FunctionARN"
+                  ]
+                }
+              }
+            ]
+          },
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 400,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 403,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 404,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 500,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 502,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 503,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 504,
+              "ErrorCachingMinTTL": 0
+            }
+          ]
+        }
+      }
+    },
+    "PublicIp": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc",
+        "InstanceId": {
+          "Ref": "Server"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "LiveUrl": {
+      "Value": {
+        "Fn::Sub": "https://${Distribution.DomainName}"
+      }
+    },
+    "InstanceId": {
+      "Value": {
+        "Ref": "Server"
+      }
+    },
+    "DistributionId": {
+      "Value": {
+        "Ref": "Distribution"
+      }
+    }
+  }
+}

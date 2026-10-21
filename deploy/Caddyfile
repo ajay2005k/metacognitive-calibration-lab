@@ -1,0 +1,20 @@
+:80 {
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+    }
+    # Explicit route order keeps verification ahead of every API and static handler.
+    route {
+        @untrusted not header X-Origin-Verify {$ORIGIN_SECRET}
+        respond @untrusted "Forbidden" 403
+        handle /api/* {
+            reverse_proxy backend:5000
+        }
+        handle {
+            root * /srv
+            try_files {path} /index.html
+            file_server
+        }
+    }
+}

@@ -7,7 +7,7 @@ A local teaching and exploratory research tool for cognitive psychology. Partici
 ## Prerequisites
 
 - Python 3.11 or newer
-- Node.js 20.19+ or 22.12+ and npm
+- Node.js 22.12+ (22 or 24 LTS recommended) and npm
 - Docker with Compose (or an existing MongoDB instance)
 
 ## Setup and run
@@ -210,3 +210,7 @@ git push origin main
 ```
 
 The generated source ZIP omits `.git`, installed dependencies, build output, caches, and `.env`. The separate Git bundle preserves all local commits for transfer. Commit author is the neutral `MCLab Project <mclab@localhost>`; no personal Git identity was invented.
+
+## AWS hosting
+
+Production container definitions and an AWS CloudFormation deployment are in [deploy/aws/README.md](deploy/aws/README.md). The deployment uses CloudFront HTTPS with a shared access gate, one EC2 Docker host, and persistent encrypted EBS storage for MongoDB. It requires a separate AWS account connection; GitHub access does not supply AWS credentials. A live link is confirmed only after AWS provisioning and an authenticated HTTPS health check. This does not automatically seed data or migrate any local database.

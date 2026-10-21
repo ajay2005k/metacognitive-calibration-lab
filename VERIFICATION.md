@@ -15,3 +15,13 @@ Executed on 2026-10-21 with Python 3.12, Node 24, MongoDB 7, and Chromium.
 Unavailable reference tests could not be run; the user authorized original replacement content, metrics, and tests. This is explicitly documented and is not a claim of equivalence to missing reference materials.
 
 GitHub account identity was verified as `ajay2005k`. The owner created `ajay2005k/metacognitive-calibration-lab` and granted the integration push access after repository creation through the integration returned HTTP 403. Source repository: https://github.com/ajay2005k/metacognitive-calibration-lab.
+
+## AWS deployment preparation
+
+- Production backend (Gunicorn) and frontend (Caddy/static React) Docker images build successfully. Build-time CA secrets are mounted only during installation and are not copied into images.
+- The generated CloudFormation template passes offline `cfn-lint` validation. It includes CloudFront HTTPS/access gate, a restricted EC2 origin, a stable Elastic IP, and persistent encrypted root EBS storage for MongoDB.
+- Three new tests cover anonymous access denial, bad-credential rejection, and preserving authenticated requests while removing the access credential before origin forwarding. Frontend total is now **14 passing tests**.
+- Refreshed React Router, Vite, Vitest, PostCSS, and Tailwind patch versions; React remains 18. The production dependency audit reports **zero advisories**. The full install still reports 7 development-only advisories; Node/npm and those build dependencies are not shipped in the Caddy runtime image.
+- Production-container integration passed: requests without the origin secret receive 403; valid requests reach health and SPA routes; a two-trial session produces the expected report through Caddy → Gunicorn → MongoDB; that report survives a MongoDB restart. Verification data was isolated in a disposable Compose project.
+- Chromium smoke checks pass again with the updated frontend dependencies, including all trial phases, keyboard controls, charts, and tablet layout. Production builds pass with Vite 8.
+- **Not deployed on AWS yet.** The current environment has no configured AWS outbound identity, secret binding, or cloud identity manifest. No AWS stack was created and no live AWS URL has been verified. See `deploy/aws/README.md` for account requirements, deployment, credentials, costs, and teardown.

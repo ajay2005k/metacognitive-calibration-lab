@@ -1,0 +1,50 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: [mongod, --wiredTigerCacheSizeGB, '0.25']
+    volumes:
+      - ${MONGO_DATA_DIR:-mongo_production_data}:/data/db
+    networks: [database]
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, 'db.adminCommand("ping").ok']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  backend:
+    image: mclab-backend:production
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://mongo:27017/mclab
+    depends_on:
+      mongo: {condition: service_healthy}
+    networks: [application, database]
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:5000/api/health", timeout=3)']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  web:
+    image: mclab-web:production
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      ORIGIN_SECRET: ${ORIGIN_SECRET:?Set ORIGIN_SECRET before starting production}
+      NO_PROXY: "${NO_PROXY:-127.0.0.1,localhost},backend,mongo"
+      no_proxy: "${NO_PROXY:-127.0.0.1,localhost},backend,mongo"
+    ports:
+      - '${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80'
+    depends_on:
+      backend: {condition: service_healthy}
+    networks: [application]
+networks:
+  application:
+  database:
+    internal: true
+volumes:
+  mongo_production_data:
