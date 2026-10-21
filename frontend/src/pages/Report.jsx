@@ -1,7 +1,204 @@
-import {useEffect,useState} from 'react';
-import {Link,useParams} from 'react-router-dom';
-import {api,formatValue,percent} from '../api';
-import MetricCard from '../components/MetricCard';
-import CalibrationChart from '../components/CalibrationChart';
-import DifficultyChart from '../components/DifficultyChart';
-export default function Report(){const {id}=useParams();const [report,setReport]=useState(null);const [error,setError]=useState('');useEffect(()=>{api(`/reports/${id}`).then(setReport).catch(e=>setError(e.message));},[id]);if(error)return <p className="error" role="alert">{error}</p>;if(!report)return <p className="text-muted">Loading report…</p>;const m=report.metrics,s=report.session;const bias=m.overconfidence;const summary=bias===null?'There are no scored trials to summarize.':`Confidence was ${Math.abs(bias).toFixed(1)} percentage points ${bias>=0?'above':'below'} accuracy.`;const difficulty=Object.entries(m.by_difficulty).map(([label,v])=>({label,accuracy:v.accuracy===null?null:v.accuracy*100,confidence:v.mean_confidence}));return <><div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow mb-2">SESSION COMPLETE</p><h1>Calibration report</h1><p className="mt-3 text-sm text-muted"><span className="font-mono">{s.participant_id}</span> · {s.condition.feedback} feedback · {m.n} scored trials · {m.timed_out_count} timed out {s.group&&`· ${s.group}`}</p>{s.is_synthetic&&<span className="badge mt-3">Synthetic data</span>}</div><Link to="/" className="btn-secondary">New session →</Link></div><div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6"><MetricCard label="Accuracy" value={percent(m.accuracy)} note={`${m.n} scored trials`}/><MetricCard label="Mean confidence" value={formatValue(m.mean_confidence,'%')}/><MetricCard label="Overconfidence" value={bias===null?'not enough variation':`${bias>=0?'+':''}${bias.toFixed(1)} pp`} note="Confidence − accuracy"/><MetricCard label="Calibration error" value={formatValue(m.calibration_error,' pp')} note="Weighted 10-point bins"/><MetricCard label="Confidence–accuracy r" value={formatValue(m.point_biserial_r,'',2)} note="Point-biserial correlation"/><MetricCard label="Mean latency" value={formatValue(m.latency.overall===null?null:m.latency.overall/1000,' s')} note="Answer selection only"/></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><section className="panel"><h2>Confidence meets accuracy</h2><p className="mb-2 mt-1 text-xs text-muted">Points above the diagonal indicate underconfidence. Labels show trial count.</p><CalibrationChart curves={{'This session':m.calibration_curve}}/></section><section className="panel"><h2>Performance by difficulty</h2><p className="mb-2 mt-1 text-xs text-muted">Compare confidence with observed accuracy.</p><DifficultyChart data={difficulty}/></section></div><div className="my-6 rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-ink">{summary}</div><div className="grid gap-6 lg:grid-cols-2"><section className="panel"><h2>Performance by category</h2><div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="text-xs text-muted"><tr><th className="py-3">Category</th><th>n</th><th>Accuracy</th><th>Confidence</th></tr></thead><tbody>{Object.entries(m.by_category).map(([category,v])=><tr key={category} className="border-t border-line"><td className="py-3 capitalize">{category} {v.thin&&<span title="Fewer than three scored trials" className="text-xs text-amber-700">· thin cell</span>}</td><td>{v.n}</td><td>{percent(v.accuracy)}</td><td>{formatValue(v.mean_confidence,'%')}</td></tr>)}</tbody></table></div></section><section className="panel"><h2>Response patterns</h2><dl className="mt-5 space-y-4 text-sm">{[['Correct answers',formatValue(m.latency.correct===null?null:m.latency.correct/1000,' s')],['Incorrect answers',formatValue(m.latency.incorrect===null?null:m.latency.incorrect/1000,' s')],['Feedback change in bias',formatValue(m.change_after_feedback,' pp')],['Underconfidence',formatValue(m.underconfidence,' pp')]].map(([k,v])=><div className="flex justify-between gap-4 border-b border-line pb-3" key={k}><dt className="text-muted">{k}</dt><dd>{v}</dd></div>)}</dl><p className="mt-5 text-xs leading-5 text-muted">Feedback change is the late-half minus early-half confidence bias; it is descriptive, not a causal effect. Fewer than 3 trials in any category or difficulty cell is flagged as thin.</p><div className="mt-4 flex flex-wrap gap-2">{Object.entries(m.by_difficulty).map(([d,v])=><span key={d} className="rounded-md bg-paper px-2 py-1 text-xs text-muted">{d}: n={v.n}{v.thin?' · thin cell':''}</span>)}</div></section></div></>}
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { api, formatValue, percent } from "../api";
+import MetricCard from "../components/MetricCard";
+import CalibrationChart from "../components/CalibrationChart";
+import DifficultyChart from "../components/DifficultyChart";
+export default function Report() {
+  const { id } = useParams();
+  const [report, setReport] = useState(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    api(`/reports/${id}`)
+      .then(setReport)
+      .catch((e) => setError(e.message));
+  }, [id]);
+  if (error)
+    return (
+      <p className="error" role="alert">
+        {error}
+      </p>
+    );
+  if (!report) return <p className="text-muted">Loading report…</p>;
+  const m = report.metrics,
+    s = report.session;
+  const bias = m.overconfidence;
+  const summary =
+    bias === null
+      ? "There are no scored trials to summarize."
+      : `Confidence was ${Math.abs(bias).toFixed(1)} percentage points ${bias >= 0 ? "above" : "below"} accuracy.`;
+  const difficulty = ["easy", "medium", "hard"].map((label) => ({
+    label,
+    accuracy:
+      m.by_difficulty[label].accuracy === null
+        ? null
+        : m.by_difficulty[label].accuracy * 100,
+    confidence: m.by_difficulty[label].mean_confidence,
+  }));
+  return (
+    <>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow mb-2">SESSION COMPLETE</p>
+          <h1>Calibration report</h1>
+          <p className="mt-3 text-sm text-muted">
+            <span className="font-mono">{s.participant_id}</span> ·{" "}
+            {s.condition.feedback} feedback · {m.n} scored trials ·{" "}
+            {m.timed_out_count} timed out {s.group && `· ${s.group}`}
+          </p>
+          {s.is_synthetic && <span className="badge mt-3">Synthetic data</span>}
+        </div>
+        <Link to="/" className="btn-secondary">
+          New session →
+        </Link>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <MetricCard
+          label="Accuracy"
+          value={percent(m.accuracy)}
+          note={`${m.n} scored trials`}
+        />
+        <MetricCard
+          label="Mean confidence"
+          value={formatValue(m.mean_confidence, "%")}
+        />
+        <MetricCard
+          label="Overconfidence"
+          value={
+            bias === null
+              ? "not enough variation"
+              : `${bias >= 0 ? "+" : ""}${bias.toFixed(1)} pp`
+          }
+          note="Confidence − accuracy"
+        />
+        <MetricCard
+          label="Calibration error"
+          value={formatValue(m.calibration_error, " pp")}
+          note="Weighted 10-point bins"
+        />
+        <MetricCard
+          label="Confidence–accuracy r"
+          value={formatValue(m.point_biserial_r, "", 2)}
+          note="Point-biserial correlation"
+        />
+        <MetricCard
+          label="Mean latency"
+          value={formatValue(
+            m.latency.overall === null ? null : m.latency.overall / 1000,
+            " s",
+          )}
+          note="Answer selection only"
+        />
+      </div>
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <section className="panel">
+          <h2>Confidence meets accuracy</h2>
+          <p className="mb-2 mt-1 text-xs text-muted">
+            Points above the diagonal indicate underconfidence. Labels show
+            trial count.
+          </p>
+          <CalibrationChart curves={{ "This session": m.calibration_curve }} />
+        </section>
+        <section className="panel">
+          <h2>Performance by difficulty</h2>
+          <p className="mb-2 mt-1 text-xs text-muted">
+            Compare confidence with observed accuracy.
+          </p>
+          <DifficultyChart data={difficulty} />
+        </section>
+      </div>
+      <div className="my-6 rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-ink">
+        {summary}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="panel">
+          <h2>Performance by category</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs text-muted">
+                <tr>
+                  <th className="py-3">Category</th>
+                  <th>n</th>
+                  <th>Accuracy</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(m.by_category).map(([category, v]) => (
+                  <tr key={category} className="border-t border-line">
+                    <td className="py-3 capitalize">
+                      {category}{" "}
+                      {v.thin && (
+                        <span
+                          title="Fewer than three scored trials"
+                          className="text-xs text-amber-700"
+                        >
+                          · thin cell
+                        </span>
+                      )}
+                    </td>
+                    <td>{v.n}</td>
+                    <td>{percent(v.accuracy)}</td>
+                    <td>{formatValue(v.mean_confidence, "%")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section className="panel">
+          <h2>Response patterns</h2>
+          <dl className="mt-5 space-y-4 text-sm">
+            {[
+              [
+                "Correct answers",
+                formatValue(
+                  m.latency.correct === null ? null : m.latency.correct / 1000,
+                  " s",
+                ),
+              ],
+              [
+                "Incorrect answers",
+                formatValue(
+                  m.latency.incorrect === null
+                    ? null
+                    : m.latency.incorrect / 1000,
+                  " s",
+                ),
+              ],
+              [
+                "Feedback change in bias",
+                formatValue(m.change_after_feedback, " pp"),
+              ],
+              ["Underconfidence", formatValue(m.underconfidence, " pp")],
+            ].map(([k, v]) => (
+              <div
+                className="flex justify-between gap-4 border-b border-line pb-3"
+                key={k}
+              >
+                <dt className="text-muted">{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-5 text-xs leading-5 text-muted">
+            Feedback change is the late-half minus early-half confidence bias;
+            it is descriptive, not a causal effect. Fewer than 3 trials in any
+            category or difficulty cell is flagged as thin.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {Object.entries(m.by_difficulty).map(([d, v]) => (
+              <span
+                key={d}
+                className="rounded-md bg-paper px-2 py-1 text-xs text-muted"
+              >
+                {d}: n={v.n}
+                {v.thin ? " · thin cell" : ""}
+              </span>
+            ))}
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}

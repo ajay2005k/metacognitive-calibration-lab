@@ -1,2 +1,78 @@
-import {BarChart,Bar,CartesianGrid,Legend,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts';
-export default function DifficultyChart({data,latency=false}){return <div className="h-80 w-full" role="img" aria-label={latency?'Mean latency by difficulty':'Accuracy and confidence by difficulty'}><ResponsiveContainer width="100%" height="100%"><BarChart data={data} margin={{top:20,right:15,left:5,bottom:24}}><CartesianGrid stroke="#e8edf3" strokeDasharray="3 3" vertical={false}/><XAxis dataKey="label" tick={{fontSize:11}} label={{value:'Difficulty',position:'bottom',offset:5}}/><YAxis domain={latency?[0,'auto']:[0,100]} tick={{fontSize:11}} label={{value:latency?'Seconds':'Percent (%)',angle:-90,position:'insideLeft'}}/><Tooltip formatter={v=>Number(v).toFixed(1)}/><Legend verticalAlign="top" height={28}/>{latency?<Bar dataKey="latency" name="Mean response time" fill="#245de0" radius={[4,4,0,0]}/>:<><Bar dataKey="accuracy" name="Accuracy" fill="#245de0" radius={[4,4,0,0]}/><Bar dataKey="confidence" name="Confidence" fill="#a8bef5" radius={[4,4,0,0]}/></>}</BarChart></ResponsiveContainer></div>}
+import {
+  BarChart,
+  Bar,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+export default function DifficultyChart({ data, latency = false }) {
+  return (
+    <div
+      className="h-80 w-full"
+      role="img"
+      aria-label={
+        latency
+          ? "Mean latency by difficulty"
+          : "Accuracy and confidence by difficulty"
+      }
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 15, left: 5, bottom: 24 }}
+        >
+          <CartesianGrid
+            stroke="#e8edf3"
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11 }}
+            label={{ value: "Difficulty", position: "bottom", offset: 5 }}
+          />
+          <YAxis
+            domain={latency ? [0, "auto"] : [0, 100]}
+            tick={{ fontSize: 11 }}
+            label={{
+              value: latency ? "Seconds" : "Percent (%)",
+              angle: -90,
+              position: "insideLeft",
+            }}
+          />
+          <Tooltip formatter={(v) => Number(v).toFixed(1)} />
+          <Legend verticalAlign="top" height={28} />
+          {latency ? (
+            <Bar
+              isAnimationActive={false}
+              dataKey="latency"
+              name="Mean response time"
+              fill="#245de0"
+              radius={[4, 4, 0, 0]}
+            />
+          ) : (
+            <>
+              <Bar
+                isAnimationActive={false}
+                dataKey="accuracy"
+                name="Accuracy"
+                fill="#245de0"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                isAnimationActive={false}
+                dataKey="confidence"
+                name="Confidence"
+                fill="#a8bef5"
+                radius={[4, 4, 0, 0]}
+              />
+            </>
+          )}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

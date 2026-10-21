@@ -1,8 +1,291 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { post } from '../api';
-const categories=['all','logic','pattern','memory','probability','numerical','perceptual'];
-function Choice({label,value,onChange,options}){return <fieldset><legend className="mb-2 text-sm font-medium">{label}</legend><div className="flex flex-wrap gap-2">{options.map(([key,text])=><button type="button" key={key} aria-pressed={value===key} onClick={()=>onChange(key)} className={`rounded-lg border px-4 py-2.5 text-sm ${value===key?'border-brand bg-blue-50 font-medium text-brand':'border-line text-muted hover:bg-slate-50'}`}>{text}</button>)}</div></fieldset>}
-export default function SessionSetup(){const navigate=useNavigate();const [condition,setCondition]=useState({difficulty:'mixed',feedback:'none',time_limit:'none',categories:'all',interface:'slider'});const [n,setN]=useState(18);const [age,setAge]=useState('');const [year,setYear]=useState('');const [group,setGroup]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const change=key=>value=>setCondition(c=>({...c,[key]:value}));const total=condition.categories==='all'?(condition.difficulty==='mixed'?n:12):(condition.difficulty==='mixed'?6:2);
-async function begin(e){e.preventDefault();setBusy(true);setError('');try{const s=await post('/sessions',{condition,n_trials:n,age_range:age||null,academic_year:year?Number(year):null,group});navigate(`/session/${s.session_id}`);}catch(e){setError(e.message);setBusy(false);}}
-return <><div className="mb-8"><p className="eyebrow mb-2">THE EXPERIMENT</p><h1>Set up a session</h1><p className="mt-3 text-muted">Explore the gap between what we know and what we think we know.</p></div><div className="grid gap-6 lg:grid-cols-[1fr_320px]"><form onSubmit={begin} className="space-y-6"><section className="panel"><div className="mb-6 flex items-start justify-between"><div><h2>Participant details</h2><p className="mt-1 text-sm text-muted">Anonymous by design. No names or personal identifiers.</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-muted">01</span></div><div className="mb-5 rounded-lg border border-dashed border-line bg-paper p-4"><p className="text-xs text-muted">PARTICIPANT ID</p><p className="mt-1 font-mono text-sm">P-••••• <span className="ml-2 font-sans text-xs text-muted">Generated uniquely when you start</span></p></div><div className="grid gap-4 sm:grid-cols-3"><label className="field">Age range <select value={age} onChange={e=>setAge(e.target.value)}><option value="">Optional</option>{['18-20','21-23','24+'].map(v=><option key={v}>{v}</option>)}</select></label><label className="field">Academic year<select value={year} onChange={e=>setYear(e.target.value)}><option value="">Optional</option>{[1,2,3,4].map(v=><option key={v} value={v}>Year {v}</option>)}</select></label><label className="field">Group label<input maxLength={80} placeholder="e.g. Group A" value={group} onChange={e=>setGroup(e.target.value)}/></label></div></section><section className="panel"><div className="mb-6 flex justify-between"><div><h2>Experimental condition</h2><p className="mt-1 text-sm text-muted">Choose the settings before the participant begins.</p></div><span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs text-muted">02</span></div><div className="space-y-6"><Choice label="Difficulty" value={condition.difficulty} onChange={change('difficulty')} options={['easy','hard','mixed'].map(v=>[v,v==='mixed'?'Mixed difficulty':v[0].toUpperCase()+v.slice(1)])}/><Choice label="Feedback timing" value={condition.feedback} onChange={change('feedback')} options={['immediate','delayed','none'].map(v=>[v,v==='none'?'No feedback':v[0].toUpperCase()+v.slice(1)])}/><div className="grid gap-6 sm:grid-cols-2"><Choice label="Time limit per trial" value={condition.time_limit} onChange={change('time_limit')} options={[["none","No limit"],["20","20 seconds"]]}/><Choice label="Confidence interface" value={condition.interface} onChange={change('interface')} options={[["slider","Slider"],["buttons","Buttons"]]}/></div><div className="grid gap-4 sm:grid-cols-2"><label className="field">Category<select value={condition.categories} onChange={e=>change('categories')(e.target.value)}>{categories.map(v=><option key={v} value={v}>{v==='all'?'All six categories':v[0].toUpperCase()+v.slice(1)}</option>)}</select></label><label className="field">Number of trials{condition.categories==='all'&&condition.difficulty==='mixed'?<select value={n} onChange={e=>setN(Number(e.target.value))}><option value={18}>18 · one per category and level</option><option value={36}>36 · complete item bank</option></select>:<input readOnly value={`${total} trials (set by condition)`}/>}</label></div></div></section>{error&&<p role="alert" className="error">{error}</p>}<div className="flex items-center justify-between rounded-xl border border-line bg-white p-5"><span className="text-sm text-muted">Ready when you are.</span><button className="btn" disabled={busy}>{busy?'Creating session…':'Start session →'}</button></div></form><aside className="space-y-6"><div className="panel border-blue-100 bg-blue-50/50"><p className="eyebrow text-brand">SESSION OVERVIEW</p><p className="mt-5 text-4xl font-semibold">{total} <span className="text-base font-normal text-muted">trials</span></p><p className="mt-2 text-sm text-muted">Answer each question, then rate how confident you are.</p><hr className="my-5 border-blue-100"/><ul className="space-y-4 text-sm"><li>① Read and answer</li><li>② Rate confidence from 0 to 100</li><li>③ Review the calibration report</li></ul></div><div className="panel"><h2 className="text-sm">A note for instructors</h2><p className="mt-3 text-sm leading-6 text-muted">Use group labels to compare conditions. Keep all other settings consistent for a between-subject design.</p><p className="mt-4 text-xs leading-5 text-muted">Memory and perception tasks include a short viewing phase. The timer starts only when answer options appear.</p></div><p className="px-2 text-xs leading-5 text-muted">Data stays in your local MongoDB database. This app collects no names.</p></aside></div></>}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { post } from "../api";
+const categories = [
+  "all",
+  "logic",
+  "pattern",
+  "memory",
+  "probability",
+  "numerical",
+  "perceptual",
+];
+function Choice({ label, value, onChange, options }) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {options.map(([key, text]) => (
+          <button
+            type="button"
+            key={key}
+            aria-pressed={value === key}
+            onClick={() => onChange(key)}
+            className={`rounded-lg border px-4 py-2.5 text-sm ${value === key ? "border-brand bg-blue-50 font-medium text-brand" : "border-line text-muted hover:bg-slate-50"}`}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+export default function SessionSetup() {
+  const navigate = useNavigate();
+  const [condition, setCondition] = useState({
+    difficulty: "mixed",
+    feedback: "none",
+    time_limit: "none",
+    categories: "all",
+    interface: "slider",
+  });
+  const [n, setN] = useState(18);
+  const [age, setAge] = useState("");
+  const [year, setYear] = useState("");
+  const [group, setGroup] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const change = (key) => (value) =>
+    setCondition((c) => ({ ...c, [key]: value }));
+  const total =
+    condition.categories === "all"
+      ? condition.difficulty === "mixed"
+        ? n
+        : 12
+      : condition.difficulty === "mixed"
+        ? 6
+        : 2;
+  async function begin(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const s = await post("/sessions", {
+        condition,
+        n_trials: n,
+        age_range: age || null,
+        academic_year: year ? Number(year) : null,
+        group,
+      });
+      navigate(`/session/${s.session_id}`);
+    } catch (e) {
+      setError(e.message);
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      <div className="mb-8">
+        <p className="eyebrow mb-2">THE EXPERIMENT</p>
+        <h1>Set up a session</h1>
+        <p className="mt-3 text-muted">
+          Explore the gap between what we know and what we think we know.
+        </p>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <form onSubmit={begin} className="space-y-6">
+          <section className="panel">
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <h2>Participant details</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Anonymous by design. No names or personal identifiers.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-muted">
+                01
+              </span>
+            </div>
+            <div className="mb-5 rounded-lg border border-dashed border-line bg-paper p-4">
+              <p className="text-xs text-muted">PARTICIPANT ID</p>
+              <p className="mt-1 font-mono text-sm">
+                P-•••••{" "}
+                <span className="ml-2 font-sans text-xs text-muted">
+                  Generated uniquely when you start
+                </span>
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="field">
+                Age range{" "}
+                <select
+                  aria-label="Age range"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                >
+                  <option value="">Optional</option>
+                  {["18-20", "21-23", "24+"].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Academic year
+                <select
+                  aria-label="Academic year"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                >
+                  <option value="">Optional</option>
+                  {[1, 2, 3, 4].map((v) => (
+                    <option key={v} value={v}>
+                      Year {v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Group label
+                <input
+                  maxLength={80}
+                  placeholder="e.g. Group A"
+                  value={group}
+                  onChange={(e) => setGroup(e.target.value)}
+                />
+              </label>
+            </div>
+          </section>
+          <section className="panel">
+            <div className="mb-6 flex justify-between">
+              <div>
+                <h2>Experimental condition</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Choose the settings before the participant begins.
+                </p>
+              </div>
+              <span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs text-muted">
+                02
+              </span>
+            </div>
+            <div className="space-y-6">
+              <Choice
+                label="Difficulty"
+                value={condition.difficulty}
+                onChange={change("difficulty")}
+                options={["easy", "hard", "mixed"].map((v) => [
+                  v,
+                  v === "mixed"
+                    ? "Mixed difficulty"
+                    : v[0].toUpperCase() + v.slice(1),
+                ])}
+              />
+              <Choice
+                label="Feedback timing"
+                value={condition.feedback}
+                onChange={change("feedback")}
+                options={["immediate", "delayed", "none"].map((v) => [
+                  v,
+                  v === "none"
+                    ? "No feedback"
+                    : v[0].toUpperCase() + v.slice(1),
+                ])}
+              />
+              <div className="grid gap-6 sm:grid-cols-2">
+                <Choice
+                  label="Time limit per trial"
+                  value={condition.time_limit}
+                  onChange={change("time_limit")}
+                  options={[
+                    ["none", "No limit"],
+                    ["20", "20 seconds"],
+                  ]}
+                />
+                <Choice
+                  label="Confidence interface"
+                  value={condition.interface}
+                  onChange={change("interface")}
+                  options={[
+                    ["slider", "Slider"],
+                    ["buttons", "Buttons"],
+                  ]}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="field">
+                  Category
+                  <select
+                    aria-label="Category"
+                    value={condition.categories}
+                    onChange={(e) => change("categories")(e.target.value)}
+                  >
+                    {categories.map((v) => (
+                      <option key={v} value={v}>
+                        {v === "all"
+                          ? "All six categories"
+                          : v[0].toUpperCase() + v.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  Number of trials
+                  {condition.categories === "all" &&
+                  condition.difficulty === "mixed" ? (
+                    <select
+                      value={n}
+                      onChange={(e) => setN(Number(e.target.value))}
+                    >
+                      <option value={18}>
+                        18 · one per category and level
+                      </option>
+                      <option value={36}>36 · complete item bank</option>
+                    </select>
+                  ) : (
+                    <input
+                      readOnly
+                      value={`${total} trials (set by condition)`}
+                    />
+                  )}
+                </label>
+              </div>
+            </div>
+          </section>
+          {error && (
+            <p role="alert" className="error">
+              {error}
+            </p>
+          )}
+          <div className="flex items-center justify-between rounded-xl border border-line bg-white p-5">
+            <span className="text-sm text-muted">Ready when you are.</span>
+            <button className="btn" disabled={busy}>
+              {busy ? "Creating session…" : "Start session →"}
+            </button>
+          </div>
+        </form>
+        <aside className="space-y-6">
+          <div className="panel border-blue-100 bg-blue-50/50">
+            <p className="eyebrow text-brand">SESSION OVERVIEW</p>
+            <p className="mt-5 text-4xl font-semibold">
+              {total}{" "}
+              <span className="text-base font-normal text-muted">trials</span>
+            </p>
+            <p className="mt-2 text-sm text-muted">
+              Answer each question, then rate how confident you are.
+            </p>
+            <hr className="my-5 border-blue-100" />
+            <ul className="space-y-4 text-sm">
+              <li>1. Read and answer</li>
+              <li>2. Rate confidence from 0 to 100</li>
+              <li>3. Review the calibration report</li>
+            </ul>
+          </div>
+          <div className="panel">
+            <h2 className="text-sm">A note for instructors</h2>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Use group labels to compare conditions. Keep all other settings
+              consistent for a between-subject design.
+            </p>
+            <p className="mt-4 text-xs leading-5 text-muted">
+              Memory and perception tasks include a short viewing phase. The
+              timer starts only when answer options appear.
+            </p>
+          </div>
+          <p className="px-2 text-xs leading-5 text-muted">
+            Data stays in your local MongoDB database. This app collects no
+            names.
+          </p>
+        </aside>
+      </div>
+    </>
+  );
+}

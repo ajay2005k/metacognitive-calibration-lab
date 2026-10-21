@@ -1,1 +1,24 @@
-export default function ConfidenceButtons({value,onChange}){return <fieldset><legend className="mb-4 font-medium">How confident are you?</legend><div className="flex flex-wrap gap-2">{Array.from({length:11},(_,i)=>i*10).map(n=><button key={n} type="button" aria-pressed={value===n} onClick={()=>onChange(n)} className={`min-w-12 rounded-lg border px-3 py-3 text-sm ${value===n?'border-brand bg-blue-50 font-semibold text-brand':'border-line hover:bg-slate-50'}`}>{n}</button>)}</div><div className="mt-3 flex justify-between text-xs text-muted"><span>0 · Guessing</span><span>100 · Certain</span></div></fieldset>}
+export default function ConfidenceButtons({ value, onChange }) {
+  return (
+    <fieldset>
+      <legend className="mb-4 font-medium">How confident are you?</legend>
+      <div className="flex flex-wrap gap-2">
+        {Array.from({ length: 11 }, (_, i) => i * 10).map((n) => (
+          <button
+            key={n}
+            type="button"
+            aria-pressed={value === n}
+            onClick={() => onChange(n)}
+            className={`min-w-12 rounded-lg border px-3 py-3 text-sm ${value === n ? "border-brand bg-blue-50 font-semibold text-brand" : "border-line hover:bg-slate-50"}`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 flex justify-between text-xs text-muted">
+        <span>0 · Guessing</span>
+        <span>100 · Certain</span>
+      </div>
+    </fieldset>
+  );
+}

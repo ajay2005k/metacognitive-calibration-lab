@@ -1,5 +1,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@layer base { body {@apply bg-paper text-ink antialiased;} h1 {@apply text-3xl font-semibold tracking-tight;} h2 {@apply text-lg font-semibold;} button,a,input,select {@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;} input,select {@apply rounded-lg border border-line bg-white px-3 py-2.5 text-sm;} input[type=range] {@apply border-0 px-0;} button:disabled {@apply cursor-not-allowed opacity-40;} }
-@layer components { .panel {@apply rounded-xl border border-line bg-white p-6 shadow-panel;} .btn {@apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:hover:bg-brand;} .btn-secondary {@apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-medium hover:bg-slate-50;} .eyebrow {@apply text-xs font-semibold uppercase tracking-[.15em] text-muted;} .field {@apply flex flex-col gap-2 text-sm font-medium;} .error {@apply rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800;} .badge {@apply inline-block rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200;} }
+@layer base {
+  body {
+    @apply bg-paper text-ink antialiased;
+  }
+  h1 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  h2 {
+    @apply text-lg font-semibold;
+  }
+  button,
+  a,
+  input,
+  select {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
+  }
+  input,
+  select {
+    @apply rounded-lg border border-line bg-white px-3 py-2.5 text-sm;
+  }
+  input[type="range"] {
+    @apply border-0 px-0;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+}
+@layer components {
+  .panel {
+    @apply rounded-xl border border-line bg-white p-6 shadow-panel;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:hover:bg-brand;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-medium hover:bg-slate-50;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[.15em] text-muted;
+  }
+  .field {
+    @apply flex flex-col gap-2 text-sm font-medium;
+  }
+  .error {
+    @apply rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800;
+  }
+  .badge {
+    @apply inline-block rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200;
+  }
+}

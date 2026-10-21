@@ -21,7 +21,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
 cd frontend
-npm install
+npm ci
 cd ..
 ```
 
@@ -165,7 +165,7 @@ Seed creates 24 deterministic sessions (12 immediate, 12 none), 36 trials each, 
 - Timeouts have null latency and receive no feedback; entered confidence is discarded on expiration.
 - Selected answer can be changed; latency reflects the latest selection.
 - Completion requires every scheduled trial, including timeouts. Refresh restarts only the current unanswered item's phases.
-- Fixed 440×240 SVG dot coordinates with responsive scaling; circle positions rendered in a responsive SVG.
+- Fixed 440×240 SVG dot coordinates with responsive scaling; circle positions rendered in a 300×260 SVG at native pixel radii (scaling only when the viewport is narrower).
 - Restricted conditions override n_trials based on actual bank selection.
 - Session means power aggregate metrics; pooled trials power curves and latency charts.
 - UTC timestamps and UUID session IDs; empty group labels form an unlabelled comparison group.
@@ -176,3 +176,35 @@ Seed creates 24 deterministic sessions (12 immediate, 12 none), 36 trials each, 
 ## Known limits
 
 Single-machine local use; no authentication; anyone with API access can read/delete data. Do not expose the app or MongoDB to the internet. The original 36-item bank is illustrative and not psychometrically validated. It can become familiar after repeated use. Small-N calibration bins and category cells are thin. Simulated demo data is not real participant data and must not be used as evidence. Client timers depend on the browser and can be affected by background tabs; deadlines use elapsed performance time and catch up on the next timer callback. Refresh restarts the unanswered trial's viewing phase. Multi-document deletion/completion is designed for a local tool, not distributed concurrent administration; MongoDB transactions and recovery queues are not implemented. Dashboard aggregates read all matching local sessions; no large-study pagination or inferential statistics. Vite's dev server is the documented local UI server; deployment infrastructure is outside scope.
+
+## Optional browser verification
+
+With both servers running, install Playwright into the same Python environment (test tooling only):
+
+```bash
+source .venv/bin/activate
+pip install playwright==1.62.0
+python -m playwright install chromium
+python backend/tests/browser_smoke.py
+```
+
+The script can use `CHROMIUM_PATH=/path/to/chromium` for an existing browser and `MCLAB_BASE_URL` for a different frontend origin. It checks setup, instructions, keyboard/range entry, the slider guard, report charts, 768px tablet layout, memory/filler phases, delayed feedback, perceptual display hiding, timeout-only completion, Sessions, and Dashboard. Screenshots go to a temporary `mclab-browser-*` folder. Like the HTTP smoke script, it explicitly creates verification sessions and deletes them and their orphaned participants in `finally`; run against a test database. Virtual browser time accelerates presentation phases without changing application code.
+
+## GitHub publication
+
+The project is initialized as a local Git repository on `main`. The connected GitHub integration can read the account but rejected repository creation through both GraphQL and REST (`Resource not accessible by integration`, HTTP 403). No remote repository was created by this build.
+
+After an empty private `ajay2005k/metacognitive-calibration-lab` repository exists and the integration has access, publish the local history with:
+
+```bash
+git remote add origin https://github.com/ajay2005k/metacognitive-calibration-lab.git
+git push -u origin main
+```
+
+Alternatively, with your own GitHub CLI identity authorized to create repositories, run from this project root:
+
+```bash
+gh repo create ajay2005k/metacognitive-calibration-lab --private --source=. --remote=origin --push
+```
+
+The generated source ZIP omits `.git`, installed dependencies, build output, caches, and `.env`. The separate Git bundle preserves all local commits for transfer. Commit author is the neutral `MCLab Project <mclab@localhost>`; no personal Git identity was invented.
