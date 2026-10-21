@@ -190,21 +190,23 @@ python backend/tests/browser_smoke.py
 
 The script can use `CHROMIUM_PATH=/path/to/chromium` for an existing browser and `MCLAB_BASE_URL` for a different frontend origin. It checks setup, instructions, keyboard/range entry, the slider guard, report charts, 768px tablet layout, memory/filler phases, delayed feedback, perceptual display hiding, timeout-only completion, Sessions, and Dashboard. Screenshots go to a temporary `mclab-browser-*` folder. Like the HTTP smoke script, it explicitly creates verification sessions and deletes them and their orphaned participants in `finally`; run against a test database. Virtual browser time accelerates presentation phases without changing application code.
 
-## GitHub publication
+## GitHub repository
 
-The project is initialized as a local Git repository on `main`. The connected GitHub integration can read the account but rejected repository creation through both GraphQL and REST (`Resource not accessible by integration`, HTTP 403). No remote repository was created by this build.
+Source: https://github.com/ajay2005k/metacognitive-calibration-lab
 
-After an empty private `ajay2005k/metacognitive-calibration-lab` repository exists and the integration has access, publish the local history with:
+The repository is initialized on `main`. The owner created the remote repository and granted the integration access after its creation API was unavailable. Repository visibility is controlled by the owner.
+
+To get a fresh copy:
 
 ```bash
-git remote add origin https://github.com/ajay2005k/metacognitive-calibration-lab.git
-git push -u origin main
+git clone https://github.com/ajay2005k/metacognitive-calibration-lab.git
+cd metacognitive-calibration-lab
 ```
 
-Alternatively, with your own GitHub CLI identity authorized to create repositories, run from this project root:
+Follow the setup commands above. For subsequent committed changes in an authorized checkout:
 
 ```bash
-gh repo create ajay2005k/metacognitive-calibration-lab --private --source=. --remote=origin --push
+git push origin main
 ```
 
 The generated source ZIP omits `.git`, installed dependencies, build output, caches, and `.env`. The separate Git bundle preserves all local commits for transfer. Commit author is the neutral `MCLab Project <mclab@localhost>`; no personal Git identity was invented.
